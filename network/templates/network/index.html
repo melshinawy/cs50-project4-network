@@ -1,5 +1,17 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    TODO
+<div class="container-fluid">
+    <h2 class="h2">All Posts</h2>
+    <div class="card">
+        <form action="{% url 'index' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group" style="margin: 20px">
+                <label for="new-post">New Post</label><br>
+                <textarea class="form-control mb-3" name="new-post"></textarea>
+                <button class="btn btn-primary" type="submit">Post</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
