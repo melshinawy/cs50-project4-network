@@ -11,12 +11,21 @@ from .models import User
 def index(request):
     if request.method == 'GET':
         return render(request, "network/index.html", {
-            'all_posts': Post.objects.all()
+            'posts': Post.objects.all()
         })
     elif request.method == 'POST':
-        new_post = Post(post=request.POST['new-post'], user=User.objects.get(pk=request.user.id))
+        new_post = Post(content=request.POST['new-post'], user=User.objects.get(pk=request.user.id))
         new_post.save()
         return HttpResponseRedirect(reverse('index'))
+
+def profile(request, user_id):
+    user_profile = User.objects.get(pk=user_id)
+    a = User.objects.filter(following=user_profile).count()
+    return render(request, "network/profile.html", {
+       'num_followers': a,
+       'num_following': user_profile.following.count(),
+       'posts': Post.objects.filter(user=user_profile)
+    })
 
 
 def login_view(request):

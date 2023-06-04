@@ -1,0 +1,10 @@
+{% extends 'network/layout.html' %}
+
+{% block body %}
+    
+    <h1>Following: {{ num_following }}</h1>
+    <h1>Followers: {{ num_followers }}</h1>
+    {% for post in posts %}
+        <p>{{ post.content }}</p>
+    {% endfor %}
+{% endblock %}
