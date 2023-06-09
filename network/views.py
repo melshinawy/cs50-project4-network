@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from .models import User, Post
@@ -17,6 +17,14 @@ def index(request):
         new_post = Post(content=request.POST['new-post'], user=User.objects.get(pk=request.user.id))
         new_post.save()
         return HttpResponseRedirect(reverse('index'))
+
+def get_posts(request, type):
+    posts = Post.objects.all()
+    posts = posts.order_by("-timestamp").all()
+    serialized_posts = [post.serialize() for post in posts]
+    for post in serialized_posts:
+        post['logged_user'] = request.user.username
+    return JsonResponse(serialized_posts, safe=False)
 
 def profile(request, user_id):
     user_profile = User.objects.get(pk=user_id)
