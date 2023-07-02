@@ -11,9 +11,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             divCard.className = "card";
             divCardHeader.className = "card-header";
-            divCardBody.className = "card-body";         
+            divCardBody.className = "card-body";
 
-            divCardHeader.innerHTML = `<a href="${post.poster_id}">${post.poster}</a>`;
+            
+
+            divCardHeader.innerHTML = `<a>${post.poster}</a>`;
+            divCardHeader.onclick = () => {
+                fetch(`${post.poster_id}`, {method: 'GET'})
+            }
             divCardBody.innerHTML = `
             <blockquote class="blockquote mb-0">                     
                 <p class="post-text">${post.content}<span class="float-right" id="edit">${post.poster === post.logged_user ? '<a href="#">Edit</a>': ''}</span></p>
@@ -22,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <footer class="footer">${post.timestamp}</footer>
             </blockquote>
             `
-            
             divCard.appendChild(divCardHeader);
             divCard.appendChild(divCardBody);
             divPosts.appendChild(divCard);
@@ -30,3 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
         })
     })
 })
+
+function Post(post) {
+
+    return (
+        <div className="card">
+            <div className="card-header">
+                {post.poster}
+            </div>
+        </div>
+    )
+}

@@ -28,9 +28,8 @@ def get_posts(request, type):
 
 def profile(request, user_id):
     user_profile = User.objects.get(pk=user_id)
-    a = User.objects.filter(following=user_profile).count()
     return render(request, "network/profile.html", {
-       'num_followers': a,
+       'num_followers': User.objects.filter(following=user_profile).count(),
        'num_following': user_profile.following.count(),
        'posts': Post.objects.filter(user=user_profile)
     })
