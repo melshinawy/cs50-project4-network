@@ -2,8 +2,20 @@
 
 {% block body %}
     
-    <h1>Following: {{ num_following }}</h1>
-    <h1>Followers: {{ num_followers }}</h1>
+    <div class="card" style="width: 18rem;">
+        <div class="card-body">
+            <h5 class="card-title">{{ userdata.username }}</h5>
+            <p class="card-text">Following: {{ num_following }} users<br/>Followers: {{ num_followers }} users</p>
+            {% if user.is_authenticated and user.id != profile_id %}
+                {% if not following %}
+                    <a href="#" class="badge badge-success">Follow</a>
+                {% else %}
+                    <a href="#" class="badge badge-danger">{{ user }}</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
     {% for post in posts %}
         <p>{{ post.content }}</p>
     {% endfor %}
