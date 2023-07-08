@@ -1,22 +1,27 @@
 {% extends 'network/layout.html' %}
+{% load static %}
+
+{% block script %}<script src="{% static 'network/helper.js' %}"></script>{% endblock %}
 
 {% block body %}
     
     <div class="card" style="width: 18rem;">
         <div class="card-body">
-            <h5 class="card-title">{{ userdata.username }}</h5>
-            <p class="card-text">Following: {{ num_following }} users<br/>Followers: {{ num_followers }} users</p>
-            {% if user.is_authenticated and user.id != profile_id %}
+            <h5 class="card-title">{{ username }}
+                {% if user.is_authenticated and user.id != profile_id %}
                 {% if not following %}
-                    <a href="#" class="badge badge-success">Follow</a>
+                    <button type="button" id="follow" class="btn btn-success">Follow</button>
                 {% else %}
-                    <a href="#" class="badge badge-danger">{{ user }}</a>
+                    <button type="button" id="unfollow" class="btn btn-danger">Unfollow</button>
                 {% endif %}
             {% endif %}
+            </h5>
+            <p class="card-text">Following: {{ num_following }} users<br/>Followers: {{ num_followers }} users</p>
         </div>
     </div>
 
-    {% for post in posts %}
-        <p>{{ post.content }}</p>
-    {% endfor %}
+    <div class="container-fluid"></div>
+        <div id="posts">           
+        </div>
+    </div>
 {% endblock %}

@@ -18,22 +18,39 @@ def index(request):
         new_post.save()
         return HttpResponseRedirect(reverse('index'))
 
-def get_posts(request, type):
-    posts = Post.objects.all()
-    posts = posts.order_by("-timestamp").all()
-    serialized_posts = [post.serialize() for post in posts]
-    for post in serialized_posts:
-        post['logged_user'] = request.user.username
-    return JsonResponse(serialized_posts, safe=False)
+def get_posts(request, users_posts):
+    if request.method == 'GET':
+        if users_posts == 'all':
+            posts = Post.objects.all()
+        elif users_posts == 'following':
+            logged_user = User.objects.get(pk=request.user.id)
+            posts = Posts.objects.all().filter(poster__in=logged_user.following.all())
+        else:
+            return render(request, "network/error.html", {
+                'message': 'Invalid posts requested.'
+            })
+        
+        posts = posts.order_by("-timestamp").all()
+        serialized_posts = [post.serialize() for post in posts]
 
-def profile(request, user_id):
-    user_profile = User.objects.get(pk=user_id)
+        for post in serialized_posts:
+            post['logged_user'] = request.user.username
+
+        return JsonResponse(serialized_posts, safe=False)
+    else:
+        return render(request, "network/error.html", {
+            'message': 'Invalid request type.'
+        })
+
+def profile(request, username):
+    user_profile = User.objects.get(username=username)
     return render(request, "network/profile.html", {
-       'profile_id': user_id,
-    #    'following': request.user.id in user_profile.following,
-       'num_followers': User.objects.filter(following=user_profile).count(),
-       'num_following': user_profile.following.count(),
-       'posts': Post.objects.filter(user=user_profile)
+        'username': user_profile.username,
+        'profile_id': user_profile.id,
+        # 'following': request.user.id in user_profile.following,
+        'num_followers': User.objects.filter(following=user_profile).count(),
+        'num_following': user_profile.following.count(),
+        'posts': Post.objects.filter(user=user_profile)
     })
 
 

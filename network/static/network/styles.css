@@ -3,6 +3,12 @@
     font-size: 12px;
 }
 
+#follow, #unfollow {
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 0px 2px;
+}
+
 footer {
     font-size: 10px; 
     text-align: right;

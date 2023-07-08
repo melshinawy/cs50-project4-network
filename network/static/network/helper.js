@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             divCardHeader.className = "card-header";
             divCardBody.className = "card-body";         
 
-            divCardHeader.innerHTML = `<a href="${post.poster_id}">${post.poster}</a>`;
+            divCardHeader.innerHTML = `<a href="${post.poster}">${post.poster}</a>`;
             divCardBody.innerHTML = `
             <blockquote class="blockquote mb-0">                     
                 <p class="post-text">${post.content}<span class="float-right" id="edit">${post.poster === post.logged_user ? '<a href="#">Edit</a>': ''}</span></p>
