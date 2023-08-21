@@ -3,7 +3,7 @@ from django.db import models
 
 
 class User(AbstractUser):
-    following = models.ManyToManyField('self', blank=True, null=True)
+    pass
 
 class Post(models.Model):
     content = models.TextField()
@@ -20,3 +20,7 @@ class Post(models.Model):
             "content": self.content,
             "likes": self.likes.count()
         }
+
+class Following(models.Model): # Change to follow
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey('User', on_delete=models.CASCADE, related_name='followers')

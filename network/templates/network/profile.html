@@ -1,8 +1,6 @@
 {% extends 'network/layout.html' %}
 {% load static %}
 
-{% block script %}<script src="{% static 'network/helper.js' %}"></script>{% endblock %}
-
 {% block body %}
     
     <div class="card" style="width: 18rem;">
@@ -16,12 +14,12 @@
                 {% endif %}
             {% endif %}
             </h5>
-            <p class="card-text">Following: {{ num_following }} users<br/>Followers: {{ num_followers }} users</p>
+            <p class="card-text">{{ num_following }} Following<br/>{{ num_followers }} Followers</p>
         </div>
     </div>
 
     <div class="container-fluid"></div>
-        <div id="posts">           
+        <div id="posts" data-type="user-{{ profile_id }}">           
         </div>
     </div>
 {% endblock %}

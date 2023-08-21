@@ -1,8 +1,6 @@
 {% extends "network/layout.html" %}
 {% load static %}
 
-{% block script %}<script src="{% static 'network/helper.js' %}"></script>{% endblock %}
-
 {% block body %}
     <div class="container-fluid">
         <h2>All Posts</h2>
@@ -19,7 +17,7 @@
             </div>
         {% endif %}
     
-        <div id="posts">           
+        <div id="posts" data-type="all">           
         </div>
     </div>
 {% endblock %}
