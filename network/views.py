@@ -1,3 +1,4 @@
+import json
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -25,32 +26,54 @@ def following(request):
         })
 
 def get_posts(request, users_posts):
-    if request.method == 'GET':
-        if users_posts == 'all':
-            posts = Post.objects.all()
-        elif users_posts == 'following':
-            logged_user = User.objects.get(pk=request.user.id)
-            users_followed = logged_user.following.all().values_list('following', flat=True)
-            posts = Post.objects.all().filter(user__in=users_followed)
-        elif users_posts[:4] == 'user':
-            requested_user = User.objects.get(pk=int(users_posts[5:]))
-            posts = Post.objects.all().filter(user=requested_user)
-        else:
-            return render(request, "network/error.html", {
-                'message': 'Invalid posts requested.'
-            })
-        
-        posts = posts.order_by("-timestamp").all()
-        serialized_posts = [post.serialize() for post in posts]
+    if request.method != 'GET':
+        return JsonResponse({"error": "GET request required."}, status=400)
 
-        for post in serialized_posts:
-            post['logged_user'] = request.user.username
-
-        return JsonResponse(serialized_posts, safe=False)
+    if users_posts == 'all':
+        posts = Post.objects.all()
+    elif users_posts == 'following':
+        logged_user = User.objects.get(pk=request.user.id)
+        users_followed = logged_user.following.all().values_list('following', flat=True)
+        posts = Post.objects.all().filter(user__in=users_followed)
+    elif users_posts[:4] == 'user':
+        requested_user = User.objects.get(pk=int(users_posts[5:]))
+        posts = Post.objects.all().filter(user=requested_user)
     else:
-        return render(request, "network/error.html", {
-            'message': 'Invalid request type.'
-        })
+        return JsonResponse({"error": "Invalid posts type"}, status=400)
+
+    posts = posts.order_by("-timestamp").all()
+    serialized_posts = [post.serialize() for post in posts]
+
+    for post in serialized_posts:
+        post['logged_user'] = request.user.username
+
+    return JsonResponse(serialized_posts, safe=False)
+
+def edit_post(request, post_id):
+    if request.method != 'POST':
+        return JsonResponse({"error": "POST request required."}, status=400)
+        
+    post = Post.objects.get(pk=post_id)
+    serialized_post = post.serialize()
+
+    return JsonResponse(serialized_post, safe=False)
+
+def edit_follow(request):
+    if request.method != 'POST':
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    data = json.loads(request.body)
+    user = User.objects.get(pk=request.user.id)
+    try:
+        following = User.objects.get(pk=data['followed'])
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User not found."})
+
+    if data['following']:
+        new_follow = Following.create(user=user, following=following)
+        new_follow.save()
+    else:
+        Following.objects.all().filter(user=user, following=following).delete()
 
 def profile(request, username):
 
