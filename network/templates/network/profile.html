@@ -1,6 +1,8 @@
 {% extends 'network/layout.html' %}
 {% load static %}
 
+{% block script %}<script src="{% static 'network/followProfile.js' %}" type="module"></script>{% endblock %}
+
 {% block body %}
     
     <div class="card" style="width: 18rem;">
@@ -8,13 +10,13 @@
             <h5 class="card-title">{{ username }}
                 {% if user.is_authenticated and user.id != profile_id %}
                 {% if not following %}
-                    <button type="button" id="follow" class="btn btn-success" data-user="{{ profile_id }}">Follow</button>
+                    <button type="button" id="follow" class="btn btn-success" data-user="{{ profile_id }}" data-csrftoken="{{ csrf_token }}">Follow</button>
                 {% else %}
-                    <button type="button" id="unfollow" class="btn btn-danger">Unfollow</button>
+                    <button type="button" id="unfollow" class="btn btn-danger" data-user="{{ profile_id }}" data-csrftoken="{{ csrf_token }}">Unfollow</button>
                 {% endif %}
             {% endif %}
             </h5>
-            <p class="card-text">{{ num_following }} Following<br/>{{ num_followers }} Followers</p>
+            <p class="card-text">{{ num_following }} Following<br/><span id="followers">{{ num_followers }}</span> Followers</p>
         </div>
     </div>
 

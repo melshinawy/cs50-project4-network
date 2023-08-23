@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from .models import User, Post, Following
+from .models import User, Post, Follow
 
 from .models import User
 
@@ -64,16 +64,21 @@ def edit_follow(request):
 
     data = json.loads(request.body)
     user = User.objects.get(pk=request.user.id)
+
     try:
         following = User.objects.get(pk=data['followed'])
     except User.DoesNotExist:
         return JsonResponse({"error": "User not found."})
 
     if data['following']:
-        new_follow = Following.create(user=user, following=following)
+        new_follow = Follow.objects.create(user=user, following=following)
         new_follow.save()
+        return JsonResponse({"message": "user followed."}, status=201)
     else:
-        Following.objects.all().filter(user=user, following=following).delete()
+        Follow.objects.all().filter(user=user, following=following).delete()
+        return JsonResponse({"message": "user unfollowed"}, status=201)
+
+    return JsonResponse({"message": "Follow status successfully updated."}, status=201)
 
 def profile(request, username):
 

@@ -10,6 +10,7 @@ class Post(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='posts')
     timestamp = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField('User')
+    last_update = models.DateTimeField(null=True)
 
     def serialize(self):
         return {
@@ -21,6 +22,9 @@ class Post(models.Model):
             "likes": self.likes.count()
         }
 
-class Following(models.Model): # Change to follow
+class Follow(models.Model):
+    class Meta:
+        unique_together = (('user', 'following'),)
+
     user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='following')
     following = models.ForeignKey('User', on_delete=models.CASCADE, related_name='followers')
