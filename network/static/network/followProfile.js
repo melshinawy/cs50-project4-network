@@ -2,8 +2,10 @@ document.addEventListener('DOMContentLoaded',
     function () {
 
         const followBtn = document.querySelector('button')
-
-        followBtn.addEventListener('click', () => toggleFollowBtn())
+        if (followBtn) {
+            followBtn.addEventListener('click', () => toggleFollowBtn())
+        }
+        
         function toggleFollowBtn() {
             
             fetch(`/edit_follow`, {
