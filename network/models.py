@@ -19,7 +19,8 @@ class Post(models.Model):
             "poster_id": self.user.id,
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
             "content": self.content,
-            "likes": self.likes.count()
+            "likes": self.likes.count(),
+            "last_update": None if self.last_update is None else self.last_update.strftime("%b %d %Y, %I:%M %p")
         }
 
 class Follow(models.Model):

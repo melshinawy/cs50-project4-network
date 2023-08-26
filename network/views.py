@@ -1,9 +1,11 @@
 import json
+import datetime
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 from .models import User, Post, Follow
 
 from .models import User
@@ -17,6 +19,7 @@ def index(request):
         new_post.save()
         return HttpResponseRedirect(reverse('index'))
 
+@login_required
 def following(request):
     if request.method == 'GET':
         return render(request,"network/following.html")
@@ -49,22 +52,34 @@ def get_posts(request, users_posts):
 
     return JsonResponse(serialized_posts, safe=False)
 
-def edit_post(request, post_id):
+@login_required
+def edit_post(request):
     if request.method != 'POST':
         return JsonResponse({"error": "POST request required."}, status=400)
-        
-    post = Post.objects.get(pk=post_id)
+
+    data = json.loads(request.body)
+    post = Post.objects.get(pk=data['postId'])
+
+    if post.user.id != request.user.id:
+        return JsonResponse({"error": "Permission denied. User not authorized to edit this post"})
+    
+    post.content = data['postContent']
+    post.last_update = datetime.datetime.now()
+    post.save()
+
     serialized_post = post.serialize()
+    serialized_post['logged_user'] = request.user.username
 
     return JsonResponse(serialized_post, safe=False)
 
+@login_required
 def edit_follow(request):
     if request.method != 'POST':
         return JsonResponse({"error": "POST request required."}, status=400)
 
     data = json.loads(request.body)
     user = User.objects.get(pk=request.user.id)
-
+    
     try:
         following = User.objects.get(pk=data['followed'])
     except User.DoesNotExist:

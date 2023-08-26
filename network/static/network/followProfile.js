@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded',
             })
             .then(response => response.json())
             .then(result => {
-                console.log(result)
                 if (followBtn.id === 'follow') {
                     followBtn.id = 'unfollow';
                     followBtn.innerHTML = 'Unfollow';
