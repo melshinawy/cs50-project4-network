@@ -1,15 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     const divPosts = document.querySelector('#posts')
+    const csrftoken = document.querySelector('#posts').dataset.csrftoken
 
     fetch(`/get_posts/${divPosts.dataset.type}`)
     .then(response => response.json())
     .then(posts => {
         posts.forEach(post => createPost(post));
-        setEditStyle();
+        setStyle();
     })
 
-    function editPost(postId, postContent, csrftoken) {
+    function editPost(postId, postContent) {
         let blockQuote = document.querySelector(`#post-${postId}`);
         const divCardBody = document.querySelector(`#div-${postId}`);
         const editForm = document.createElement('div');
@@ -38,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         postBtn.onclick = function () {
             fetch(`/edit_post`, {
-                method: 'POST',
+                method: 'PUT',
                 headers: {'X-CSRFToken': csrftoken},
                 body: JSON.stringify({
                     postId: postId,
@@ -52,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     blockQuote.remove()               
                     editForm.remove();
                     divCardBody.appendChild(newBlockQuote)
-                setEditStyle();
+                setStyle();
             }
 
             })
@@ -90,30 +91,80 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${post.poster === post.logged_user ? `<a class="edit" data-post-id="${post.id}" data-post-content="${post.content}">Edit</a>`: ''}
                 </span>
             </p>
-            <i class="bi bi-heart h6"></i><h6 style="display: inline;"> ${post.likes}</h6>
+            ${post.liked ?  `<i class="bi bi-heart-fill h6" data-post-id="${post.id}">` : `<i class="bi bi-heart h6" data-post-id="${post.id}">`}</i><h6 style="display: inline;"> ${post.likes}</h6>
             <footer class="footer">Posted on:${post.timestamp} ${post.last_update ? ` - Last updated: ${post.last_update}` : ''}</footer>
         `
         return blockQuote;
     }
 
-    function setEditStyle() {
-        let postsEdit = document.querySelectorAll(".edit");
+    function setStyle() {
+
+        const postsEdit = document.querySelectorAll(".edit");
+        const hearts = document.querySelectorAll(".bi-heart");
+        const filledHearts = document.querySelectorAll(".bi-heart-fill");
 
         postsEdit.forEach(post => { 
 
             let postId = post.dataset.postId;
             let postContent = post.dataset.postContent
 
-            post.style.color = "blue";
+            post.style.color = 'blue';
             post.onmouseover = function() {
                 this.style.textDecoration = 'underline';
                 this.style.cursor = 'pointer';
             }
+
             post.onmouseout = function () {
                 this.style.textDecoration = 'none';
             }
-            post.addEventListener('click', () => editPost(postId, postContent, document.querySelector('#posts').dataset.csrftoken));
+
+            post.addEventListener('click', () => editPost(postId, postContent));
+        })
+
+        hearts.forEach(heart => {
+            heart.style.color = 'red';
+            heart.onmouseover = function () {
+                this.className = 'bi bi-heart-fill h6';
+                this.style.cursor = 'pointer';
+            }
+
+            heart.onmouseout = function () {
+                this.className = 'bi bi-heart h6';
+            }
+
+            heart.addEventListener('click', () => updateLikes(this, 'like'))
+        })
+
+        filledHearts.forEach(filledHeart => {
+            filledHeart.style.color = 'red';
+            filledHeart.onmouseover = function () {
+                this.className = 'bi bi-heart h6';
+                this.style.cursor = 'pointer';
+            }
+
+            filledHeart.onmouseout = function () {
+                this.className = 'bi bi-heart-fill h6';
+            }
+            
+            filledHeart.addEventListener('click', () => updateLikes(this, 'unlike'))
         })
     }
     
+    function updateLikes(heart, modification) {
+        fetch(`/edit_likes`, {
+            method: 'PUT',
+            headers: {'X-CSRFToken': csrftoken},
+                body: JSON.stringify({
+                    postId: heart.dataset.postId,
+                    userId: userId,
+                    modification: modification
+                })
+            })
+            .then(response => response.json())
+            .then(() => {
+                modification === 'like' ? heart.className = 'bi bi-heart-fill h6': heart.className = 'bi bi-heart h6';
+                setStyle();
+        })
+    }
+
     })

@@ -32,10 +32,14 @@ def get_posts(request, users_posts):
     if request.method != 'GET':
         return JsonResponse({"error": "GET request required."}, status=400)
 
+    if request.user.is_authenticated:
+        logged_user = User.objects.get(pk=request.user.id)
+    else:
+        logged_user = None
+
     if users_posts == 'all':
         posts = Post.objects.all()
     elif users_posts == 'following':
-        logged_user = User.objects.get(pk=request.user.id)
         users_followed = logged_user.following.all().values_list('following', flat=True)
         posts = Post.objects.all().filter(user__in=users_followed)
     elif users_posts[:4] == 'user':
@@ -45,17 +49,20 @@ def get_posts(request, users_posts):
         return JsonResponse({"error": "Invalid posts type"}, status=400)
 
     posts = posts.order_by("-timestamp").all()
-    serialized_posts = [post.serialize() for post in posts]
 
+    serialized_posts = [post.serialize() for post in posts]
+    
     for post in serialized_posts:
         post['logged_user'] = request.user.username
+        post['liked'] = logged_user in post['likers']
+        del post['likers']
 
     return JsonResponse(serialized_posts, safe=False)
 
 @login_required
 def edit_post(request):
-    if request.method != 'POST':
-        return JsonResponse({"error": "POST request required."}, status=400)
+    if request.method != 'PUT':
+        return JsonResponse({"error": "PUT request required."}, status=400)
 
     data = json.loads(request.body)
     post = Post.objects.get(pk=data['postId'])
@@ -74,8 +81,8 @@ def edit_post(request):
 
 @login_required
 def edit_follow(request):
-    if request.method != 'POST':
-        return JsonResponse({"error": "POST request required."}, status=400)
+    if request.method != 'PUT':
+        return JsonResponse({"error": "PUT request required."}, status=400)
 
     data = json.loads(request.body)
     user = User.objects.get(pk=request.user.id)
@@ -94,6 +101,29 @@ def edit_follow(request):
         return JsonResponse({"message": "user unfollowed"}, status=201)
 
     return JsonResponse({"message": "Follow status successfully updated."}, status=201)
+
+@login_required
+def edit_like(request):
+    if request.method != 'PUT':
+        return JsonResponse({"error": "PUT request required."}, status=400)
+    
+    data = json.loads(request.body)
+    user = User.objects.get(pk=request.user.id)
+
+    try:
+        post = Post.objects.get(pk=data['postId'])
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=400)
+    
+    if data['modification'] is 'like':
+        post.likes.add(user)
+        return JsonResponse ({"message": "Post successfully liked."}, status=201)
+    elif data['modification'] is 'unlike':
+        post.likes.remove(user)
+        return JsonResponse ({"message": "Post successfully unliked."}, status=201)
+    else:
+        return JsonResponse({"error": "Invalid modification method."}, status=400)
+
 
 def profile(request, username):
 
