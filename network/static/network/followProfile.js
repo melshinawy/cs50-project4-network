@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded',
         
         function toggleFollowBtn() {
             
-            fetch(`/edit_follow`, {
+            fetch('/edit_follow', {
                 method: 'PUT',
                 headers: {'X-CSRFToken': followBtn.dataset.csrftoken},
                 body: JSON.stringify({

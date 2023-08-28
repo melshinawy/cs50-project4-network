@@ -68,7 +68,7 @@ def edit_post(request):
     post = Post.objects.get(pk=data['postId'])
 
     if post.user.id != request.user.id:
-        return JsonResponse({"error": "Permission denied. User not authorized to edit this post"})
+        return JsonResponse({"error": "Permission denied. User not authorized to edit this post"}, status=400)
     
     post.content = data['postContent']
     post.last_update = datetime.datetime.now()
@@ -76,6 +76,7 @@ def edit_post(request):
 
     serialized_post = post.serialize()
     serialized_post['logged_user'] = request.user.username
+    del serialized_post['likers']
 
     return JsonResponse(serialized_post, safe=False)
 
