@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function editPost(postId, postContent) {
-        let blockQuote = document.querySelector(`#post-${postId}`);
+        const blockQuote = document.querySelector(`#post-${postId}`);
         const divCardBody = document.querySelector(`#div-${postId}`);
         const editForm = document.createElement('div');
 
@@ -65,17 +65,38 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(post => {
-                if (post){
-                    const newBlockQuote = createBlockQuote(post);
-                    blockQuote.remove()               
+                if (post){              
                     editForm.remove();
-                    divCardBody.appendChild(newBlockQuote)
-                //setStyle();
+                    reloadPost(post);
             }
 
             })
         }
-    }   
+    }
+
+    function reloadPost(post) {
+        
+        const divCardBody = document.querySelector(`#div-${post.id}`);
+        const blockQuote = document.querySelector(`#post-${post.id}`);
+        blockQuote.remove();
+        const newBlockQuote = createBlockQuote(post);              
+        divCardBody.appendChild(newBlockQuote);
+    }
+    
+    function updateLikes(postId, modification) {   
+        fetch('/edit_like', {
+            method: 'PUT',
+            headers: {'X-CSRFToken': document.querySelector('#posts').dataset.csrftoken},
+            body: JSON.stringify({
+                postId: postId,
+                modification: modification
+            })
+        })
+        .then(response => response.json())
+        .then(post => {
+            reloadPost(post);
+        })
+    }
     
     function createBlockQuote(post) {
         const blockQuote = document.createElement('blockquote');
@@ -109,16 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
         blockQuote.appendChild(likes);
         blockQuote.appendChild(footer);
 
-        // blockQuote.innerHTML = `
-        //     <p class="post-text">${post.content}
-        //         <span class="float-right">
-        //             ${post.poster === post.logged_user ? `<a class="edit" onclick="editPost(${post.id}, ${post.content})" data-post-id="${post.id}" data-post-content="${post.content}">Edit</a>`: ''}
-        //         </span>
-        //     </p>
-        //     <i data-post-id="${post.id}" data-logged-user="${post.logged_user}" ${post.liked ? 'class="bi bi-heart-fill h6"' : 'class="bi bi-heart h6"'}></i>
-        //     <h6 style="display: inline;" class="likes-count"> ${post.likes}</h6>
-        //     <footer class="footer">Posted on:${post.timestamp} ${post.last_update ? ` - Last updated: ${post.last_update}` : ''}</footer>
-        // `
         return blockQuote;
     }
 
@@ -146,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function createLikeHeart(post){
         const heart = document.createElement("i");
         heart.style.color = 'red';
-
         if (post.liked) {
             heart.className = "bi bi-heart-fill h6";
             heart.onmouseover = function () {
@@ -162,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } else {
             heart.classList = "bi bi-heart h6"
+            if (post.logged_user) {
             heart.onmouseover = function () {
                 this.className = 'bi bi-heart-fill h6';
                 this.style.cursor = 'pointer';
@@ -172,23 +183,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             heart.addEventListener('click', () => updateLikes(post.id, 'like'));
 
-        }
+        }}
         return heart;
-    }
-    
-    function updateLikes(postId, modification) {           
-        fetch('/edit_like', {
-            method: 'PUT',
-            headers: {'X-CSRFToken': document.querySelector('#posts').dataset.csrftoken},
-            body: JSON.stringify({
-                postId: postId,
-                modification: modification
-            })
-        })
-        .then(response => response.json())
-        .then(result => {
-            //setStyle()
-        })
     }
 
     })

@@ -101,29 +101,36 @@ def edit_follow(request):
         Follow.objects.all().filter(user=user, following=following).delete()
         return JsonResponse({"message": "user unfollowed"}, status=201)
 
-    return JsonResponse({"message": "Follow status successfully updated."}, status=201)
-
 @login_required
 def edit_like(request):
     if request.method != 'PUT':
         return JsonResponse({"error": "PUT request required."}, status=400)
     
     data = json.loads(request.body)
-    user = User.objects.get(pk=request.user.id)
+    logged_user = User.objects.get(pk=request.user.id)
 
     try:
         post = Post.objects.get(pk=data['postId'])
     except Post.DoesNotExist:
         return JsonResponse({"error": "Post not found."}, status=400)
     
-    if data['modification'] is 'like':
-        post.likes.add(user)
-        return JsonResponse ({"message": "Post successfully liked."}, status=201)
-    elif data['modification'] is 'unlike':
-        post.likes.remove(user)
-        return JsonResponse ({"message": "Post successfully unliked."}, status=201)
+    if data['modification'] == 'like':
+        post.likes.add(logged_user)
+        # return JsonResponse ({"message": "Post successfully liked."}, status=201)
+    elif data['modification'] == 'unlike':
+        post.likes.remove(logged_user)
+        # return JsonResponse ({"message": "Post successfully unliked."}, status=201)
     else:
         return JsonResponse({"error": "Invalid modification method."}, status=400)
+
+    post.save()
+    
+    serialized_post = post.serialize()
+    serialized_post['logged_user'] = request.user.username
+    serialized_post['liked'] = logged_user in serialized_post['likers']
+    del serialized_post['likers']
+
+    return JsonResponse(serialized_post, safe=False)
 
 
 def profile(request, username):
