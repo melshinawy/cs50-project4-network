@@ -20,7 +20,7 @@ class Post(models.Model):
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
             "content": self.content,
             "likes": self.likes.count(),
-            "likers": self.likes.all(),
+            "likers": [user.id for user in self.likes.all()],
             "last_update": None if self.last_update is None else self.last_update.strftime("%b %d %Y, %I:%M %p")
         }
 

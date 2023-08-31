@@ -21,7 +21,10 @@
     </div>
 
     <div class="container-fluid"></div>
-        <div id="posts" data-type="user-{{ profile_id }}">           
+        <div id="posts" data-type="user-{{ profile_id }}">
+            {% for posts in posts %}
+            
+            {% endfor %}          
         </div>
     </div>
 {% endblock %}

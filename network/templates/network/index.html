@@ -17,7 +17,34 @@
             </div>
         {% endif %}
     
-        <div id="posts" data-type="all" data-csrftoken="{{csrf_token }}">           
+        <div class="card">
+            {% for post in posts reversed %}
+                <div class="card-header">
+                    <a href="{% url 'profile' post.poster_id %}">{{  post.user }}</a>
+                </div>
+                <div class="card-body">
+                    <blockquote class="blockquote mb-0">
+                        {% if user.id == post.poster_id %}
+                            <span class="edit">Edit</span>
+                        {% endif %}
+
+                        <p>{{ post.content }}</p>
+
+                        {% if user.id in post.likers %}
+                        <i class="bi bi-heart-fill h6"></i>
+                        {% else %}
+                            <i class="bi bi-heart h6"></i>
+                        {% endif %}
+
+                        <small> {{ post.likes }}</small><br>
+                        <footer class="footer">Posted on:{{ post.timestamp }}
+                            {% if post.last_update %}
+                                - Last updated: {{ post.last_update }}
+                            {% endif %}
+                        </footer>
+                    </blockquote>                    
+                </div>
+            {% endfor %}
         </div>
     </div>
 {% endblock %}

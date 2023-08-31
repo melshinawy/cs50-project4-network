@@ -3,13 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const divPosts = document.querySelector('#posts')
     const csrftoken = document.querySelector('#posts').dataset.csrftoken
 
-    fetch(`/get_posts/${divPosts.dataset.type}`)
-    .then(response => response.json())
-    .then(posts => {
-        posts.forEach(post => createPost(post));
-        setStyle();
-    })
-
     function editPost(postId, postContent) {
         let blockQuote = document.querySelector(`#post-${postId}`);
         const divCardBody = document.querySelector(`#div-${postId}`);
@@ -58,44 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             })
         }
-    }
-    
-    function createPost(post) {
-        let divCard = document.createElement('div');
-        let divCardHeader = document.createElement('div');
-        let divCardBody = document.createElement('div');
-        
-        divCard.className = "card";
-        divCardHeader.className = "card-header";
-        divCardBody.className = "card-body";
-        divCardBody.id = `div-${post.id}`;     
-
-        divCardHeader.innerHTML = `<a href="/users/${post.poster}">${post.poster}</a>`
-        let blockQuote = createBlockQuote(post);
-        divCardBody.appendChild(blockQuote); 
-
-        divCard.appendChild(divCardHeader);
-        divCard.appendChild(divCardBody);
-        divPosts.appendChild(divCard);
-    }   
-    
-    function createBlockQuote(post) {
-        let blockQuote = document.createElement('blockquote');
-
-        blockQuote.className= "blockquote mb-0" 
-        blockQuote.id=`post-${post.id}`
-
-        blockQuote.innerHTML = `
-            <p class="post-text">${post.content}
-                <span class="float-right">
-                    ${post.poster === post.logged_user ? `<a class="edit" data-post-id="${post.id}" data-post-content="${post.content}">Edit</a>`: ''}
-                </span>
-            </p>
-            ${post.liked ?  `<i class="bi bi-heart-fill h6" data-post-id="${post.id}">` : `<i class="bi bi-heart h6" data-post-id="${post.id}">`}</i><h6 style="display: inline;"> ${post.likes}</h6>
-            <footer class="footer">Posted on:${post.timestamp} ${post.last_update ? ` - Last updated: ${post.last_update}` : ''}</footer>
-        `
-        return blockQuote;
-    }
+    } 
 
     function setStyle() {
 

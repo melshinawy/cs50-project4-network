@@ -13,7 +13,12 @@ from .models import User
 
 def index(request):
     if request.method == 'GET':
-        return render(request, "network/index.html")
+        posts = Post.objects.all()
+        serialized_posts = [post.serialize() for post in posts]
+
+        return render(request, "network/index.html", {
+            'posts': serialized_posts
+        })
     elif request.method == 'POST':
         new_post = Post(content=request.POST['new-post'], user=User.objects.get(pk=request.user.id))
         new_post.save()
