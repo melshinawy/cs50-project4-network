@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
         <link href="{% static 'network/styles.css' %}" rel="stylesheet">
+        <script src="{% static 'network/index.js' %}" type="module"></script>
         {% block script %}{% endblock %}
     </head>
     <body>
@@ -41,11 +42,80 @@
                 {% endif %}
               </ul>
             </div>
-          </nav>
+        </nav>
         
         <div class="body">
             {% block body %}
             {% endblock %}
-        </div>
+
+            {% if posts %}
+                {% for post in posts %}
+                    <div class="card">
+                        <div class="card-header">
+                            <a href="{% url 'profile' post.poster %}">{{  post.poster }}</a>
+                        </div>
+                        <div class="card-body">
+                            <blockquote class="blockquote mb-0" id="post-{{ post.id }}" 
+                                data-csrftoken="{{ csrf_token }}" 
+                                data-post-id="{{ post.id }}" 
+                                data-user-id="{{ user.id }}"
+                                data-post-content="{{ post.content }}">
+
+                                <p class="post-text">{{ post.content }}</p>
+                                
+                                {% if user.id == post.poster_id %}
+                                    <span class="edit">Edit</span>
+                                {% endif %}
+                                <br>
+
+                                {% if user.id in post.likers %}
+                                    <i class="bi bi-heart-fill h6"></i>
+                                {% else %}
+                                    <i class="bi bi-heart h6"></i>
+                                {% endif %}
+
+                                <small> {{ post.likes }}</small><br>
+                                <footer class="footer">Posted on:{{ post.timestamp }}
+                                    {% if post.last_update %}
+                                        - Last updated: {{ post.last_update }}
+                                    {% endif %}
+                                </footer>
+                            </blockquote>                    
+                        </div>
+                    </div>
+                {% endfor %}
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        {% if posts.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ posts.previous_page_number }}" aria-label="Previous">
+                        {% else %}
+                            <li class="page-item disabled">     
+                                <a class="page-link" href="#" aria-label="Previous">
+                        {% endif %}
+                            <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% for i in posts.paginator.page_range %}
+                            {% if i == posts.number %}
+                                <li class="page-item active"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>        
+                            {% endif %}
+                        {% endfor %}
+                        {% if posts.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ posts.next_page_number }}" aria-label="Previous">
+                        {% else %}
+                            <li class="page-item disabled">     
+                                <a class="page-link" href="#" aria-label="Previous">
+                        {% endif %}
+                            <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>            
     </body>
 </html>

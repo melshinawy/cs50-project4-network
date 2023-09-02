@@ -1,10 +1,6 @@
 {% extends "network/layout.html" %}
 {% load static %}
 
-{% block script %}
-    <script src="{% static 'network/styler.js' %}" type="module"></script>
-{% endblock %}
-
 {% block body %}
     <div class="container-fluid">
         <h2>All Posts</h2>
@@ -14,66 +10,10 @@
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="new-post"><h5>New Post</h5></label><br>
-                        <textarea class="form-control mb-3" name="new-post"></textarea>
+                        <textarea class="form-control mb-3" id="new-post" name="new-post"></textarea>
                         <button class="btn btn-primary" type="submit">Post</button>
                     </div>
                 </form>
             </div>
         {% endif %}
-
-        {% for post in posts reversed %}
-        <div class="card">
-            <div class="card-header">
-                <a href="{% url 'profile' post.poster %}">{{  post.poster }}</a>
-            </div>
-            <div class="card-body">
-                <blockquote class="blockquote mb-0" id="post-{{ post.id }}" 
-                    data-csrftoken="{{ csrf_token }}" 
-                    data-post-id="{{ post.id }}" 
-                    data-user-id="{{ user.id }}"
-                    data-post-content="{{ post.content }}">
-
-                    <p class="post-text">{{ post.content }}</p>
-                    
-                    {% if user.id == post.poster_id %}
-                        <span class="edit">Edit</span>
-                    {% endif %}
-                    <br>
-
-                    {% if user.id in post.likers %}
-                        <i class="bi bi-heart-fill h6"></i>
-                    {% else %}
-                        <i class="bi bi-heart h6"></i>
-                    {% endif %}
-
-                    <small> {{ post.likes }}</small><br>
-                    <footer class="footer">Posted on:{{ post.timestamp }}
-                        {% if post.last_update %}
-                            - Last updated: {{ post.last_update }}
-                        {% endif %}
-                    </footer>
-                </blockquote>                    
-            </div>
-        </div>
-        {% endfor %}
-        <h4>{{ posts }}</h4>
-        <nav aria-label="Page navigation example">
-            <ul class="pagination">
-              <li class="page-item">
-                <a class="page-link" href="#" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-              <li class="page-item"><a class="page-link" href="#">1</a></li>
-              <li class="page-item"><a class="page-link" href="#">2</a></li>
-              <li class="page-item"><a class="page-link" href="#">3</a></li>
-              <li class="page-item">
-                <a class="page-link" href="#" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-
-    </div>
 {% endblock %}
