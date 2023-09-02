@@ -2,14 +2,11 @@
     color: red;
 }
 
-.bi:hover {
-    cursor: pointer;
-}
-
 .edit {
     float: right;
     font-size: 14px;
     color: blue;
+    display: inline;
 }
 
 .edit:hover {
@@ -40,6 +37,7 @@
     font-size: 18px;
     margin: 0px; 
     padding: 0px;
+    display: inline;
 }
 
 small {

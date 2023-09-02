@@ -1,11 +1,12 @@
 import json
-import datetime
+from django.utils import timezone
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from .models import User, Post, Follow
 
 from .models import User
@@ -16,53 +17,39 @@ def index(request):
         posts = Post.objects.all()
         serialized_posts = [post.serialize() for post in posts]
 
+        p = Paginator(serialized_posts, 2)
+        page = request.GET.get('page')
+        paginated_posts = p.get_page(page)
+
         return render(request, "network/index.html", {
-            'posts': serialized_posts
+            'posts': paginated_posts
         })
+        
     elif request.method == 'POST':
         new_post = Post(content=request.POST['new-post'], user=User.objects.get(pk=request.user.id))
         new_post.save()
         return HttpResponseRedirect(reverse('index'))
-
-@login_required
-def following(request):
-    if request.method == 'GET':
-        return render(request,"network/following.html")
     else:
         return render(request, "network/error.html", {
             'message': 'Invalid request type.'
         })
 
-def get_posts(request, users_posts):
+@login_required
+def following(request):
     if request.method != 'GET':
-        return JsonResponse({"error": "GET request required."}, status=400)
-
-    if request.user.is_authenticated:
-        logged_user = User.objects.get(pk=request.user.id)
-    else:
-        logged_user = None
-
-    if users_posts == 'all':
-        posts = Post.objects.all()
-    elif users_posts == 'following':
-        users_followed = logged_user.following.all().values_list('following', flat=True)
-        posts = Post.objects.all().filter(user__in=users_followed)
-    elif users_posts[:4] == 'user':
-        requested_user = User.objects.get(pk=int(users_posts[5:]))
-        posts = Post.objects.all().filter(user=requested_user)
-    else:
-        return JsonResponse({"error": "Invalid posts type"}, status=400)
-
-    posts = posts.order_by("-timestamp").all()
+        return render(request, "network/error.html", {
+            'message': 'Invalid request type.'
+        })
+    
+    logged_user = User.objects.get(pk=request.user.id)
+    users_followed = logged_user.following.all().values_list('following', flat=True)
+    posts = Post.objects.all().filter(user__in=users_followed)
 
     serialized_posts = [post.serialize() for post in posts]
-    
-    for post in serialized_posts:
-        post['logged_user'] = request.user.username
-        post['liked'] = logged_user in post['likers']
-        del post['likers']
 
-    return JsonResponse(serialized_posts, safe=False)
+    return render(request,"network/following.html", {
+        'posts': serialized_posts
+    })
 
 @login_required
 def edit_post(request):
@@ -76,7 +63,7 @@ def edit_post(request):
         return JsonResponse({"error": "Permission denied. User not authorized to edit this post"})
     
     post.content = data['postContent']
-    post.last_update = datetime.datetime.now()
+    post.last_update = timezone.now()
     post.save()
 
     serialized_post = post.serialize()
@@ -120,22 +107,28 @@ def edit_like(request):
     except Post.DoesNotExist:
         return JsonResponse({"error": "Post not found."}, status=400)
     
-    if data['modification'] is 'like':
+    if data['modification'] == 'like':
         post.likes.add(user)
-        return JsonResponse ({"message": "Post successfully liked."}, status=201)
-    elif data['modification'] is 'unlike':
+    elif data['modification'] == 'unlike':
         post.likes.remove(user)
-        return JsonResponse ({"message": "Post successfully unliked."}, status=201)
     else:
         return JsonResponse({"error": "Invalid modification method."}, status=400)
+    
+    post.save()
+    return JsonResponse(post.serialize(), safe=False)
 
 
 def profile(request, username):
 
+    if request.method != 'GET':
+        pass
     # Create user object for requested profile
     profile = User.objects.get(username=username)
     # Get profile followers to check if the logged user is following requested profile
     profile_followers = profile.followers.all().values_list('user', flat=True)
+
+    posts = Post.objects.all().filter(user=profile)
+    serialized_posts = [post.serialize() for post in posts]
     
     # Render profile page
     return render(request, "network/profile.html", {
@@ -143,7 +136,8 @@ def profile(request, username):
         'profile_id': profile.id, # profile id
         'num_followers': profile.followers.all().count(), # number of followers
         'num_following': profile.following.all().count(), # number of users followed
-        'following': request.user.id in list(profile_followers) # check if logged user is following the requested profile
+        'following': request.user.id in list(profile_followers), # check if logged user is following the requested profile
+        'posts': serialized_posts
     })
 
 

@@ -1,7 +1,10 @@
 {% extends 'network/layout.html' %}
 {% load static %}
 
-{% block script %}<script src="{% static 'network/followProfile.js' %}" type="module"></script>{% endblock %}
+{% block script %}
+    <script src="{% static 'network/followProfile.js' %}" type="module"></script>
+    <script src="{% static 'network/showPosts.js' %}" type="module"></script>
+{% endblock %}
 
 {% block body %}
     
@@ -20,11 +23,34 @@
         </div>
     </div>
 
-    <div class="container-fluid"></div>
-        <div id="posts" data-type="user-{{ profile_id }}">
-            {% for posts in posts %}
-            
-            {% endfor %}          
-        </div>
-    </div>
+    {% for post in posts reversed %}
+            <div class="card">
+                <div class="card-header">
+                    <a href="{% url 'profile' post.poster %}">{{  post.poster }}</a>
+                </div>
+                <div class="card-body">
+                    <blockquote class="blockquote mb-0">
+
+                        <p class="post-text">{{ post.content }}
+                            {% if user.id == post.poster_id %}
+                            <span class="edit">Edit</span>
+                        {% endif %}
+                        </p>
+
+                        {% if user.id in post.likers %}
+                        <i class="bi bi-heart-fill h6"></i>
+                        {% else %}
+                            <i class="bi bi-heart h6"></i>
+                        {% endif %}
+
+                        <small> {{ post.likes }}</small><br>
+                        <footer class="footer">Posted on:{{ post.timestamp }}
+                            {% if post.last_update %}
+                                - Last updated: {{ post.last_update }}
+                            {% endif %}
+                        </footer>
+                    </blockquote>                    
+                </div>
+            </div>
+            {% endfor %}
 {% endblock %}

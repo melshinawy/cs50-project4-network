@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     const divPosts = document.querySelector('#posts')
-    const csrftoken = document.querySelector('#posts').dataset.csrftoken
 
     function editPost(postId, postContent) {
         let blockQuote = document.querySelector(`#post-${postId}`);
@@ -51,7 +50,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
             })
         }
-    } 
+    }
+    
+    function createBlockQuote(post) {
+        const blockQuote = document.createElement('blockquote');
+
+        blockQuote.className= "blockquote mb-0" 
+        blockQuote.id=`post-${post.id}`
+
+        const p = document.createElement('p');
+        p.className = "post-text";
+        p.innerHTML = post.content;
+
+        if (post.poster === post.logged_user) {
+            const editLink = createEditLink(post);
+            p.appendChild(editLink)
+        }
+
+        const heart = createLikeHeart(post);
+
+        const likes = document.createElement('h6');
+        likes.style.display = "inline";
+        likes.className = "likes-count";
+        likes.innerHTML = post.likes;
+        likes.style.marginLeft = "5px";
+
+        const footer = document.createElement('footer');
+        footer.className = "footer";
+        footer.innerHTML = `Posted on: ${post.timestamp} ${post.last_update ? ` - Last updated: ${post.last_update}` : ''}`;
+
+        blockQuote.appendChild(p);
+        blockQuote.appendChild(heart);
+        blockQuote.appendChild(likes);
+        blockQuote.appendChild(footer);
+
+        return blockQuote;
+    }
 
     function setStyle() {
 
