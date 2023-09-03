@@ -36,7 +36,7 @@ def normalize_posts(request, posts):
     # Serialize posts
     serialized_posts = [post.serialize() for post in posts]
     # Paginate posts
-    p = Paginator(serialized_posts, 2)
+    p = Paginator(serialized_posts, 10)
     page = request.GET.get('page')
     paginated_posts = p.get_page(page)
     # Return normalized posts
@@ -53,7 +53,7 @@ def following(request):
     
     logged_user = User.objects.get(pk=request.user.id) # Get logged user
     users_followed = logged_user.following.all().values_list('following', flat=True) # Get a list of users_followed
-    posts = Post.objects.all().filter(user__in=users_followed) # Get posts having users followed as posters
+    posts = Post.objects.all().filter(user__in=users_followed).order_by("-timestamp") # Get posts having users followed as posters
     paginated_posts = normalize_posts(request, posts) # Normalize posts
     # Render following.html with normalized posts
     return render(request,"network/following.html", {
@@ -144,7 +144,7 @@ def profile(request, username):
         })
     profile = User.objects.get(username=username) # Create user object for requested profile
     profile_followers = profile.followers.all().values_list('user', flat=True) # Get profile followers to check if the logged user is following requested profile
-    posts = Post.objects.all().filter(user=profile) # Get posts by user
+    posts = Post.objects.all().filter(user=profile).order_by("-timestamp") # Get posts by user
     paginated_posts = normalize_posts(request, posts) # Normalize posts
     
     # Render profile page
